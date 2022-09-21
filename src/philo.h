@@ -8,24 +8,41 @@
 #include <unistd.h>
 #include <string.h>
 
-typedef struct s_list
+typedef struct t_shared_info
 {
-	p_thread_t		*thread;
-	int				philo_id;
-	struct s_list	*next;
-}				t_list;
+	pthread_mutex_t				*forks;
+	int							*time_ate;
 
-typedef struct t_struct
+}				s_shared_info;
+
+typedef struct t_ind_philo
 {
-	int			number_philos;
-	int			t_to_die;
-	int			t_to_eat;
-	int			t_to_sleep;
-	int			t_each_eat;
+	t_shared_philo				*shared_info;
 
-	int			*forks;
-	int			*philos;
-//	s_list		p_threads;
-}				s_struct;
+	long long int				t_to_die;
+	long long int				t_to_eat;
+	long long int				t_to_sleep;
+	int							t_each_eat;
+	int							num_times_ate;
+
+	int							philo_id;
+	int							right_handed;
+	int							right_fork;
+	int							left_fork;
+	pthread_t					thread_id;
+
+
+}					s_ind_philo;
+
+typedef struct t_main
+{
+	t_ind_info					*ind_philos;
+	t_shared_info				shared;
+
+}				s_main;
+
+
+
+
 
 #endif
