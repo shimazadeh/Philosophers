@@ -16,9 +16,7 @@ CC       = cc
 
 CFLAGS   = -Wall -Wextra -Werror -g3
 
-LINKER   = cc
-
-# LFLAGS   = -L/usr/include -lreadline
+LFLAGS   = -pthread
 
 SRCDIR   = src
 
@@ -30,7 +28,7 @@ OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 rm       = rm -f
 
 $(TARGET): $(OBJECTS)
-	@$(LINKER) $(OBJECTS) -o $@
+	@$(CC) $(OBJECTS) $(LFLAGS) -o $@
 
 $(OBJECTS):	$(OBJDIR)/%.o :	$(SRCDIR)/%.c
 	@$(CC) $(CFLAGS) -c $< -o $@

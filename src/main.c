@@ -12,81 +12,111 @@
 
 #include "philo.h"
 
-
-int	execute(t_ind_philo ind_philo)
+void	*execute(void *philo)
 {
-	int	right;
-	int	left;
+	int				right;
+	int				left;
+	struct timeval	time;
+	t_ind_philo		*ind_philo;
 
+	ind_philo = (t_ind_philo *) philo;
 	right = ind_philo->right_fork;
 	left = ind_philo->left_fork;
-	if (ind_philo->right_handed == 1)//philo is right handed it starts with right fork
+	while (1)
 	{
-		if (pthread_mutex_lock(ind_philo->shared_info->forks[right]) == 0)
-			printf("%ld: philo %d has taken a fork\n", gettimeofday(), ind_philo->philo_id);
-		if (pthread_mutex_lock(ind_philo->shared_info->forks[left]) == 0)
-			printf("%ld: philo %d has taken a fork\n", gettimeofday(), ind_philo->philo_id);
-	}
-	else
-	{
-		if (pthread_mutex_lock(ind_philo->shared_info->forks[left]) == 0)
-			printf("%ld: philo %d has taken a fork\n", gettimeofday(), ind_philo->philo_id);
-		if (pthread_mutex_lock(ind_philo->shared_info->forks[right]) == 0)
-			printf("%ld: philo %d has taken a fork\n", gettimeofday(), ind_philo->philo_id);
-	}
-	printf("%ld: philo %d is eating\n", gettimeofday(), ind_philo->philo_id);
-	usleep(ind_philo->t_to_eat);
-	pthread_mutex_unlock(ind_philo->shared_info->forks[left]);
-	pthread_mutex_unlock(ind_philo->shared_info->forks[right]);
-	ind_philo->num_times_ate++;
-	ind_philo->shared_info->time_ate[ind_philo->philo_id] = gettimeofday();
+		if (ind_philo->right_handed == 1)//philo is right handed it starts with right fork
+		{
+			if (pthread_mutex_lock(&ind_philo[0].shared_info->forks[right]) == 0)
+			{
+				gettimeofday(&time, NULL);
+				printf("%ld: philo %d has taken a fork\n", time.tv_usec, ind_philo->philo_id);
+			}
+			if (pthread_mutex_lock(&ind_philo[0].shared_info->forks[left]) == 0)
+			{
+				gettimeofday(&time, NULL);
+				printf("%ld: philo %d has taken a fork\n", time.tv_usec, ind_philo[0].philo_id);
+			}
+		}
+		else
+		{
+			if (pthread_mutex_lock(&ind_philo[0].shared_info->forks[left]) == 0)
+			{
+				gettimeofday(&time, NULL);
+				printf("%ld: philo %d has taken a fork\n", time.tv_usec, ind_philo[0].philo_id);
+			}
+			if (pthread_mutex_lock(&ind_philo[0].shared_info->forks[right]) == 0)
+			{
+				gettimeofday(&time, NULL);
+				printf("%ld: philo %d has taken a fork\n", time.tv_usec, ind_philo[0].philo_id);
+			}
+		}
+		gettimeofday(&time, NULL);
+		printf("%ld: philo %d is eating\n", time.tv_usec, ind_philo[0].philo_id);
+		usleep(ind_philo[0].t_to_eat);
+		pthread_mutex_unlock(&ind_philo->shared_info->forks[left]);
+		pthread_mutex_unlock(&ind_philo->shared_info->forks[right]);
 
-	printf("%ld: philo %d is sleeping\n", gettimeofday(), ind_philo->philo_id);
-	usleep(ind_philo->t_to_sleep);
-	printf("%ld: philo %d is thinking\n", gettimeofday(), ind_philo->philo_id);
+		ind_philo[0].num_times_ate++;
+		ind_philo[0].shared_info->time_ate[ind_philo[0].philo_id] = time.tv_usec;
 
-	return (0);
+		gettimeofday(&time, NULL);
+		printf("%ld: philo %d is sleeping\n", time.tv_usec, ind_philo[0].philo_id);
+		usleep(ind_philo[0].t_to_sleep);
+
+		gettimeofday(&time, NULL);
+		printf("%ld: philo %d is thinking\n", time.tv_usec, ind_philo[0].philo_id);
+		if (check_if_program_ends(philo) < 0)
+			return (NULL);
+	}
+	return (NULL);
 }
 
-int ft_create_threads(t_ind_philo all_philos)
+int ft_create_threads(t_ind_philo *all_philos, int total_philos)
 {
-	int i;
+	int		i;
 
 	i = 0;
-	while(all_philos[i])
+	while(i < total_philos)
 	{
-		if (pthread_create(all_philos[i]->pthread_id, NULL, &execute, all_philos[i]) != 0)
+		// display_content(all_philos[i]);
+		if (pthread_create(&all_philos[i].thread_id, NULL, &execute, (void *)&all_philos[i]) != 0)
 			return (printf("error creating threads\n"), -1);
 		i++;
 	}
 	return (0);
 }
 
-int	check_if_dead(t_shared_philo shared_info)
+int	check_if_program_ends(t_ind_philo *philo)
 {
-	while(1)
-	{
+	int i;
 
+	i = 0;
+	if (philo[i].t_each_eat)
+	{
+		if (philo[i].num_times_ate == philo[i].t_each_eat)
+			return (-1);
+		else
+			return (0);
 	}
+	return (0);
 }
 
 int	main(int ac, char **av)
 {
-	t_main	philos;
+	t_main	*philos;
 	int		i;
 
 	i = 0;
-	philo = NULL;
+	philos = NULL;
 	if (argument_check(av, ac) < 0)
 		return (-1);
 	philos = parsing(av);
-	if (ft_create_threads(philos->ind_philos) < 0)
+	if (ft_create_threads(philos->ind_philos, ft_atoi(av[1])) < 0)
 		return (-1);
-	while(philos->ind_philos[i])
+	while(i < ft_atoi(av[1]))
 	{
-		pthread_join(philos->ind_philos[i]->thread_id, NULL);
+		pthread_join(philos->ind_philos[i].thread_id, NULL);
 		i++;
 	}
-
 	return (0);
 }

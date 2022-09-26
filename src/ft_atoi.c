@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#include "philo.h"
 
 int	ft_atoi(const char *str)
 {
@@ -27,7 +27,7 @@ int	ft_atoi(const char *str)
 		|| str[i] == '\t' || str[i] == '\f' || str[i] == '\r')
 		i++;
 	if (str[i] == 45 || str[i] == 43)
-	{	
+	{
 		if (str[i] == 45)
 			sign = sign * -1;
 		i++;
