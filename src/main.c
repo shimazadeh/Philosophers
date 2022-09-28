@@ -155,6 +155,11 @@ int	main(int ac, char **av)
 	philos = parsing(av);
 	if (ft_create_threads(philos->ind_philos, ft_atoi(av[1])) < 0)
 		return (-1);
+	while (1)
+	{
+		if (check_if_dead(philos->ind_philos, philos->shared_info) == 1)
+			return (1);
+	}
 	while(i < ft_atoi(av[1]))
 	{
 		pthread_join(philos->ind_philos[i].thread_id, NULL);
