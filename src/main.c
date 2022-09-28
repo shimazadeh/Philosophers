@@ -28,30 +28,40 @@ void	*execute(void *philo)
 		{
 			if (pthread_mutex_lock(&ind_philo[0].shared_info->forks[right]) == 0)
 			{
+				pthread_mutex_lock(&ind_philo[0].shared_info->to_write);
 				gettimeofday(&time, NULL);
 				printf("%ld: philo %d has taken a fork\n", time.tv_usec, ind_philo->philo_id);
+				pthread_mutex_unlock(&ind_philo[0].shared_info->to_write);
 			}
 			if (pthread_mutex_lock(&ind_philo[0].shared_info->forks[left]) == 0)
 			{
+				pthread_mutex_lock(&ind_philo[0].shared_info->to_write);
 				gettimeofday(&time, NULL);
 				printf("%ld: philo %d has taken a fork\n", time.tv_usec, ind_philo[0].philo_id);
+				pthread_mutex_unlock(&ind_philo[0].shared_info->to_write);
 			}
 		}
 		else
 		{
 			if (pthread_mutex_lock(&ind_philo[0].shared_info->forks[left]) == 0)
 			{
+				pthread_mutex_lock(&ind_philo[0].shared_info->to_write);
 				gettimeofday(&time, NULL);
 				printf("%ld: philo %d has taken a fork\n", time.tv_usec, ind_philo[0].philo_id);
+				pthread_mutex_unlock(&ind_philo[0].shared_info->to_write);
 			}
 			if (pthread_mutex_lock(&ind_philo[0].shared_info->forks[right]) == 0)
 			{
+				pthread_mutex_lock(&ind_philo[0].shared_info->to_write);
 				gettimeofday(&time, NULL);
 				printf("%ld: philo %d has taken a fork\n", time.tv_usec, ind_philo[0].philo_id);
+				pthread_mutex_unlock(&ind_philo[0].shared_info->to_write);
 			}
 		}
+		pthread_mutex_lock(&ind_philo[0].shared_info->to_write);
 		gettimeofday(&time, NULL);
 		printf("%ld: philo %d is eating\n", time.tv_usec, ind_philo[0].philo_id);
+		pthread_mutex_unlock(&ind_philo[0].shared_info->to_write);
 		usleep(ind_philo[0].t_to_eat);
 		pthread_mutex_unlock(&ind_philo->shared_info->forks[left]);
 		pthread_mutex_unlock(&ind_philo->shared_info->forks[right]);
@@ -59,12 +69,19 @@ void	*execute(void *philo)
 		ind_philo[0].num_times_ate++;
 		ind_philo[0].shared_info->time_ate[ind_philo[0].philo_id] = time.tv_usec;
 
+		pthread_mutex_lock(&ind_philo[0].shared_info->to_write);
 		gettimeofday(&time, NULL);
 		printf("%ld: philo %d is sleeping\n", time.tv_usec, ind_philo[0].philo_id);
+		pthread_mutex_unlock(&ind_philo[0].shared_info->to_write);
 		usleep(ind_philo[0].t_to_sleep);
 
+		pthread_mutex_lock(&ind_philo[0].shared_info->to_write);
 		gettimeofday(&time, NULL);
 		printf("%ld: philo %d is thinking\n", time.tv_usec, ind_philo[0].philo_id);
+		pthread_mutex_unlock(&ind_philo[0].shared_info->to_write);
+
+
+
 		if (check_if_program_ends(philo) < 0)
 			return (NULL);
 	}
@@ -100,6 +117,31 @@ int	check_if_program_ends(t_ind_philo *philo)
 	}
 	return (0);
 }
+
+int	check_if_dead(t_ind_philo *philo, t_shared_info *shared)
+{
+	int	i;
+	int	min;
+	int	min_id;
+
+	i = 0;
+	min = 2147483647;
+	min_id = 0;
+	while (i < philo->total_philos)
+	{
+		if (shared->time_ate[i] < min)
+		{
+			min = shared->time_ate[i];
+			min_id = i;
+		}
+		i++;
+	}
+	usleep(philo->t_to_die - min);
+	if (shared->time_ate[min_id] == min)
+		return (1);
+	return (0);
+}
+
 
 int	main(int ac, char **av)
 {

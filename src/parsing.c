@@ -77,6 +77,8 @@ int	initialize_shared_info(t_shared_info *shared, int size)
 	shared->time_ate = malloc(sizeof(int) * size);
 	if (!shared->time_ate)
 		return (printf("malloc failed\n"), -1);
+	if (pthread_mutex_init(&shared->to_write, NULL) != 0)
+		return (printf("erroro initializing mutex\n"), -1);
 	while (i < size)
 	{
 		if (pthread_mutex_init(&shared->forks[i], NULL) != 0)
@@ -91,6 +93,7 @@ int	initialize_shared_info(t_shared_info *shared, int size)
 
 int	initialize_indiv_info(t_ind_philo *philos, int i, int size, char **av)
 {
+	philos->total_philos = ft_atoi(av[1]);
 	philos->t_to_die = ft_atoi(av[2]);
 	philos->t_to_eat = ft_atoi(av[3]);
 	philos->t_to_sleep = ft_atoi(av[4]);

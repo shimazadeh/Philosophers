@@ -13,6 +13,7 @@ typedef struct s_shared_info
 	pthread_mutex_t				*forks;
 	int							*time_ate;
 	pthread_mutex_t				*time_ate_mutex;
+	pthread_mutex_t				to_write;
 
 }				t_shared_info;
 
@@ -20,6 +21,7 @@ typedef struct s_ind_philo
 {
 	t_shared_info				*shared_info;
 
+	int							total_philos;
 	long long int				t_to_die;
 	long long int				t_to_eat;
 	long long int				t_to_sleep;
