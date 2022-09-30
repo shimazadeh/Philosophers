@@ -58,6 +58,7 @@ t_main	*parsing(char **av)
 		if (initialize_indiv_info(&result->ind_philos[i], i, total_philos, av) < 0)
 			dprintf(2, "initialization error\n");
 		// display_content(result->ind_philos[i]);
+
 		i++;
 	}
 	return (result);
@@ -68,13 +69,16 @@ int	initialize_shared_info(t_shared_info *shared, int size)
 	int i;
 
 	i = 0;
+	shared->dead = 0;
+	if (pthread_mutex_init(&shared->death, NULL) != 0)
+		return (printf("error initializing the mutex\n"), -1);
 	shared->forks = malloc(sizeof(pthread_mutex_t) * size);
 	if (!shared->forks)
 		return (printf("malloc failed\n"), -1);
 	shared->time_ate_mutex = malloc(sizeof(pthread_mutex_t) * size);
 	if (!shared->time_ate_mutex)
 		return (printf("malloc failed\n"), -1);
-	shared->time_ate = malloc(sizeof(int) * size);
+	shared->time_ate = malloc(sizeof(long long int) * size);
 	if (!shared->time_ate)
 		return (printf("malloc failed\n"), -1);
 	if (pthread_mutex_init(&shared->to_write, NULL) != 0)
@@ -93,10 +97,14 @@ int	initialize_shared_info(t_shared_info *shared, int size)
 
 int	initialize_indiv_info(t_ind_philo *philos, int i, int size, char **av)
 {
+	(void)size;
+
+	philos->start_time = 0;
 	philos->total_philos = ft_atoi(av[1]);
 	philos->t_to_die = ft_atoi(av[2]);
 	philos->t_to_eat = ft_atoi(av[3]);
 	philos->t_to_sleep = ft_atoi(av[4]);
+	philos->t_to_think = (philos->t_to_die - philos->t_to_eat - philos->t_to_sleep) / 2;
 	philos->num_times_ate = 0;
 	if (av[5])
 		philos->t_each_eat = ft_atoi(av[5]);
@@ -104,28 +112,22 @@ int	initialize_indiv_info(t_ind_philo *philos, int i, int size, char **av)
 		philos->t_each_eat = -1;
 
 	philos->philo_id = i;
-	if (i % 2)
-		philos->right_handed = 0;
-	else
-		philos->right_handed = 1;
-	if (i == 0)
-		philos->right_fork = size -1;
-	else
-		philos->right_fork = i - 1;//write it better
-	philos->left_fork = i;
+	philos->first_fork = (i + 1 - i % 2) % philos->total_philos;
+	philos->second_fork = (i + i % 2) % philos->total_philos;
+
 	philos->thread_id = -1;
 	// display_content(*philos);
 	return (0);
 }
 
-void	display_content(t_ind_philo philo)
-{
-	printf("philo id : %d\n", philo.philo_id);
-	printf("right hand: %d\n", philo.right_handed);
-	printf("right fork id: %d\n", philo.right_fork);
-	printf("left fork id: %d\n", philo.left_fork);
-	printf("time to eat: %lld\n", philo.t_to_eat);
-	printf("time to eat: %lld\n", philo.t_to_die);
-	printf("time to eat: %lld\n", philo.t_to_sleep);
-	printf("---------------------------------------\n");
-}
+// void	display_content(t_ind_philo philo)
+// {
+// 	printf("philo id : %d\n", philo.philo_id);
+// 	printf("right hand: %d\n", philo.right_handed);
+// 	printf("right fork id: %d\n", philo.right_fork);
+// 	printf("left fork id: %d\n", philo.left_fork);
+// 	printf("time to eat: %lld\n", philo.t_to_eat);
+// 	printf("time to eat: %lld\n", philo.t_to_die);
+// 	printf("time to eat: %lld\n", philo.t_to_sleep);
+// 	printf("---------------------------------------\n");
+// }
