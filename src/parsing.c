@@ -1,11 +1,23 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parsing.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: shabibol <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/10/04 19:23:57 by shabibol          #+#    #+#             */
+/*   Updated: 2022/10/04 19:23:58 by shabibol         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
 
-int ft_is_num(char *str)
+int	ft_is_num(char *str)
 {
 	int	i;
 
 	i = 0;
-	while(str[i])
+	while (str[i])
 	{
 		if (str[i] >= '0' && str[i] <= '9')
 			i++;
@@ -43,22 +55,16 @@ t_main	*parsing(char **av)
 	int		total_philos;
 	int		i;
 
+	i = 0;
 	total_philos = ft_atoi(av[1]);
-	result = NULL;
 	result = malloc(sizeof(t_main));
 	result->ind_philos = malloc(sizeof(t_ind_philo) * total_philos);
 	result->shared = malloc(sizeof(t_shared_info));
-
-	if (initialize_shared_info(result->shared, total_philos) < 0)
-		dprintf(2, "initialization error\n");
-	i = 0;
-	while(i < total_philos)
+	initialize_shared_info(result->shared, total_philos);
+	while (i < total_philos)
 	{
 		result->ind_philos[i].shared_info = result->shared;
-		if (initialize_indiv_info(&result->ind_philos[i], i, total_philos, av) < 0)
-			dprintf(2, "initialization error\n");
-		// display_content(result->ind_philos[i]);
-
+		initialize_indiv_info(&result->ind_philos[i], i, av);
 		i++;
 	}
 	return (result);
@@ -66,12 +72,11 @@ t_main	*parsing(char **av)
 
 int	initialize_shared_info(t_shared_info *shared, int size)
 {
-	int i;
+	int	i;
 
-	i = 0;
+	i = -1;
 	shared->dead = 0;
-	if (pthread_mutex_init(&shared->death, NULL) != 0)
-		return (printf("error initializing the mutex\n"), -1);
+	pthread_mutex_init(&shared->death, NULL);
 	shared->forks = malloc(sizeof(pthread_mutex_t) * size);
 	if (!shared->forks)
 		return (printf("malloc failed\n"), -1);
@@ -81,53 +86,37 @@ int	initialize_shared_info(t_shared_info *shared, int size)
 	shared->time_ate = malloc(sizeof(long long int) * size);
 	if (!shared->time_ate)
 		return (printf("malloc failed\n"), -1);
-	if (pthread_mutex_init(&shared->to_write, NULL) != 0)
-		return (printf("erroro initializing mutex\n"), -1);
-	while (i < size)
+	pthread_mutex_init(&shared->to_write, NULL);
+	pthread_mutex_init(&shared->mutex_full, NULL);
+	shared->full = 0;
+	while (++i < size)
 	{
-		if (pthread_mutex_init(&shared->forks[i], NULL) != 0)
-			return (printf("error initializing the mutex\n"), -1);
-		if (pthread_mutex_init(&shared->time_ate_mutex[i], NULL) != 0)
-			return (printf("error initializing the mutex\n") -1);
+		pthread_mutex_init(&shared->forks[i], NULL);
+		pthread_mutex_init(&shared->time_ate_mutex[i], NULL);
 		shared->time_ate[i] = 0;
-		i++;
 	}
 	return (0);
 }
 
-int	initialize_indiv_info(t_ind_philo *philos, int i, int size, char **av)
+int	initialize_indiv_info(t_ind_philo *philos, int i, char **av)
 {
-	(void)size;
+	long long int	sum;
 
 	philos->start_time = 0;
 	philos->total_philos = ft_atoi(av[1]);
 	philos->t_to_die = ft_atoi(av[2]);
 	philos->t_to_eat = ft_atoi(av[3]);
 	philos->t_to_sleep = ft_atoi(av[4]);
-	philos->t_to_think = (philos->t_to_die - philos->t_to_eat - philos->t_to_sleep) / 2;
+	sum = (philos->t_to_die - philos->t_to_eat - philos->t_to_sleep);
+	philos->t_to_think = sum / 2;
 	philos->num_times_ate = 0;
 	if (av[5])
 		philos->t_each_eat = ft_atoi(av[5]);
 	else
 		philos->t_each_eat = -1;
-
 	philos->philo_id = i;
 	philos->first_fork = (i + 1 - i % 2) % philos->total_philos;
 	philos->second_fork = (i + i % 2) % philos->total_philos;
-
 	philos->thread_id = -1;
-	// display_content(*philos);
 	return (0);
 }
-
-// void	display_content(t_ind_philo philo)
-// {
-// 	printf("philo id : %d\n", philo.philo_id);
-// 	printf("right hand: %d\n", philo.right_handed);
-// 	printf("right fork id: %d\n", philo.right_fork);
-// 	printf("left fork id: %d\n", philo.left_fork);
-// 	printf("time to eat: %lld\n", philo.t_to_eat);
-// 	printf("time to eat: %lld\n", philo.t_to_die);
-// 	printf("time to eat: %lld\n", philo.t_to_sleep);
-// 	printf("---------------------------------------\n");
-// }
