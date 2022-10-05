@@ -72,8 +72,14 @@ int	ft_create_threads(t_ind_philo *all_philos, int total_philos)
 	i = 0;
 	while (i < total_philos)
 	{
-		pthread_create(&all_philos[i].thread_id, NULL, &execute, \
-		(void *)&all_philos[i]);
+		if (pthread_create(&all_philos[i].thread_id, NULL, &execute, \
+		(void *)&all_philos[i]) != 0)
+		{
+			pthread_mutex_lock(&all_philos->shared_info->death);
+			all_philos->shared_info->dead = 1;
+			pthread_mutex_unlock(&all_philos->shared_info->death);
+			break ;
+		}
 		i++;
 	}
 	return (0);
