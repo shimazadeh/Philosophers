@@ -25,16 +25,35 @@ int	ft_read_death(t_shared_info *shared)
 	return (res);
 }
 
+int	ft_read_end(t_shared_info *shared)
+{
+	int	res;
+
+	pthread_mutex_lock(&shared->end_mutex);
+	if (shared->end == 1)
+		res = 1;
+	else
+		res = 0;
+	pthread_mutex_unlock(&shared->end_mutex);
+	return (res);
+}
+
 int	check_if_program_ends(t_ind_philo philo)
 {
 	if (philo.num_times_ate == philo.t_each_eat)
 	{
-		pthread_mutex_lock(&philo.shared_info->death);
 		pthread_mutex_lock(&philo.shared_info->mutex_full);
 		philo.shared_info->full++;
 		if (philo.shared_info->full == philo.total_philos)
-			philo.shared_info->dead = 1;
-		pthread_mutex_unlock(&philo.shared_info->death);
+		{
+			pthread_mutex_lock(&philo.shared_info->to_write);
+			pthread_mutex_lock(&philo.shared_info->end_mutex);
+			philo.shared_info->end = 1;
+			pthread_mutex_unlock(&philo.shared_info->end_mutex);
+			printf("%lld simulation ends\n", \
+			ft_gettimeofday() - philo.start_time);
+			pthread_mutex_unlock(&philo.shared_info->to_write);
+		}
 		pthread_mutex_unlock(&philo.shared_info->mutex_full);
 	}
 	return (0);
@@ -46,7 +65,7 @@ int	check_if_dead(t_ind_philo *philo, t_shared_info *shared)
 	long long int	min;
 	int				min_id;
 
-	while (1)
+	while (1 && !ft_read_end(shared))
 	{
 		i = -1;
 		while (++i < philo->total_philos)
@@ -73,13 +92,15 @@ int	check_death(t_shared_info *shared, t_ind_philo *philo, \
 int min_id, long long int min)
 {
 	pthread_mutex_lock(&shared->time_ate_mutex[min_id]);
-	if (shared->time_ate[min_id] == min)
+	if (shared->time_ate[min_id] == min && ft_read_end(shared) == 0)
 	{
 		pthread_mutex_lock(&shared->death);
 		shared->dead = 1;
 		pthread_mutex_unlock(&shared->death);
+		pthread_mutex_lock(&shared->to_write);
 		printf("%lld %d died\n", \
 		ft_gettimeofday() - philo->start_time, min_id + 1);
+		pthread_mutex_unlock(&shared->to_write);
 		pthread_mutex_unlock(&shared->time_ate_mutex[min_id]);
 		return (1);
 	}

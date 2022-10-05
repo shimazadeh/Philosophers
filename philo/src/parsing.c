@@ -40,10 +40,12 @@ int	argument_check(char **av, int ac)
 		if (i != 5 && !av[i][0])
 			return (printf("one or more arguments is NULL\n"), -1);
 		if (ft_is_num(av[i]) < 0)
-			return (printf("arguments cannot be negative\n"), -1);
+			return (printf("invalid argument\n"), -1);
 		num = ft_atoi(av[i]);
 		if (num > 2147483647 || num < 0)
 			return (printf("argument exceed the limits\n"), -1);
+		if (i == 2 && ft_atoi(av[i]) == 0)
+			return (printf("invalid argument\n"), -1);
 		i++;
 	}
 	if (ft_atoi(av[1]) == 0 || (av[5] && ft_atoi(av[5]) == 0))
@@ -78,15 +80,13 @@ int	initialize_shared_info(t_shared_info *shared, int size)
 
 	i = -1;
 	shared->dead = 0;
+	shared->end = 0;
 	pthread_mutex_init(&shared->death, NULL);
+	pthread_mutex_init(&shared->end_mutex, NULL);
 	shared->forks = malloc(sizeof(pthread_mutex_t) * size);
-	if (!shared->forks)
-		return (printf("malloc failed\n"), -1);
 	shared->time_ate_mutex = malloc(sizeof(pthread_mutex_t) * size);
-	if (!shared->time_ate_mutex)
-		return (printf("malloc failed\n"), -1);
 	shared->time_ate = malloc(sizeof(long long int) * size);
-	if (!shared->time_ate)
+	if (!shared->time_ate_mutex || !shared->forks || !shared->time_ate)
 		return (printf("malloc failed\n"), -1);
 	pthread_mutex_init(&shared->to_write, NULL);
 	pthread_mutex_init(&shared->mutex_full, NULL);

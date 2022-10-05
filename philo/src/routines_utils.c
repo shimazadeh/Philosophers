@@ -42,6 +42,7 @@ int	mock_up_routine(t_ind_philo *philo)
 	printf("%lld %d has taken a fork\n", \
 	ft_gettimeofday() - philo[0].start_time, philo[0].philo_id + 1);
 	pthread_mutex_unlock(&philo->shared_info->to_write);
+	pthread_mutex_unlock(&philo->shared_info->forks[first]);
 	ref = ft_gettimeofday();
 	while (ft_gettimeofday() < (ref + philo->t_to_die))
 		usleep(500);
@@ -51,8 +52,16 @@ int	mock_up_routine(t_ind_philo *philo)
 
 int	ft_destroy_free(t_main	*all_philos)
 {
-	pthread_mutex_destroy(all_philos->shared->forks);
-	pthread_mutex_destroy(all_philos->shared->time_ate_mutex);
+	int	i;
+
+	i = 0;
+	while (i < all_philos->ind_philos[0].total_philos)
+	{
+		pthread_mutex_destroy(&all_philos->shared->forks[i]);
+		pthread_mutex_destroy(&all_philos->shared->time_ate_mutex[i]);
+		i++;
+	}
+	pthread_mutex_destroy(&all_philos->shared->end_mutex);
 	pthread_mutex_destroy(&all_philos->shared->to_write);
 	pthread_mutex_destroy(&all_philos->shared->death);
 	pthread_mutex_destroy(&all_philos->shared->mutex_full);

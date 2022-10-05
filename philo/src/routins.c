@@ -16,7 +16,8 @@ int	take_first_fork(t_ind_philo	*ind_philo, int first)
 {
 	pthread_mutex_lock(&ind_philo->shared_info->forks[first]);
 	pthread_mutex_lock(&ind_philo->shared_info->to_write);
-	if (ft_read_death(ind_philo->shared_info) == 1)
+	if (ft_read_death(ind_philo->shared_info) == 1 \
+	|| ft_read_end(ind_philo->shared_info) == 1)
 	{
 		pthread_mutex_unlock(&ind_philo->shared_info->to_write);
 		pthread_mutex_unlock(&ind_philo->shared_info->forks[first]);
@@ -28,13 +29,15 @@ int	take_first_fork(t_ind_philo	*ind_philo, int first)
 	return (0);
 }
 
-int	take_second_fork(t_ind_philo *ind_philo, int second)
+int	take_second_fork(t_ind_philo *ind_philo, int second, int first)
 {
 	pthread_mutex_lock(&ind_philo->shared_info->forks[second]);
 	pthread_mutex_lock(&ind_philo->shared_info->to_write);
-	if (ft_read_death(ind_philo->shared_info) == 1)
+	if (ft_read_death(ind_philo->shared_info) == 1 \
+	|| ft_read_end(ind_philo->shared_info) == 1)
 	{
 		pthread_mutex_unlock(&ind_philo->shared_info->to_write);
+		pthread_mutex_unlock(&ind_philo->shared_info->forks[first]);
 		pthread_mutex_unlock(&ind_philo->shared_info->forks[second]);
 		return (1);
 	}
@@ -46,16 +49,15 @@ int	take_second_fork(t_ind_philo *ind_philo, int second)
 
 int	eating(t_ind_philo *ind_philo, int first, int second)
 {
-	long long int	ref;
 	int				id;
 
 	id = ind_philo->philo_id;
-	ref = 0;
 	pthread_mutex_lock(&ind_philo->shared_info->time_ate_mutex[id]);
 	ind_philo->shared_info->time_ate[id] = ft_gettimeofday();
 	pthread_mutex_unlock(&ind_philo->shared_info->time_ate_mutex[id]);
 	pthread_mutex_lock(&ind_philo->shared_info->to_write);
-	if (ft_read_death(ind_philo->shared_info) == 1)
+	if (ft_read_death(ind_philo->shared_info) == 1 \
+	|| ft_read_end(ind_philo->shared_info) == 1)
 	{
 		pthread_mutex_unlock(&ind_philo->shared_info->to_write);
 		pthread_mutex_unlock(&ind_philo->shared_info->forks[first]);
@@ -68,8 +70,8 @@ int	eating(t_ind_philo *ind_philo, int first, int second)
 	if (ft_usleep(ind_philo, first, second) == 1)
 		return (1);
 	ind_philo->num_times_ate++;
-	pthread_mutex_unlock(&ind_philo->shared_info->forks[second]);
 	pthread_mutex_unlock(&ind_philo->shared_info->forks[first]);
+	pthread_mutex_unlock(&ind_philo->shared_info->forks[second]);
 	return (0);
 }
 
@@ -79,7 +81,8 @@ int	sleeping(t_ind_philo *ind_philo)
 
 	ref = 0;
 	pthread_mutex_lock(&ind_philo->shared_info->to_write);
-	if (ft_read_death(ind_philo->shared_info) == 1)
+	if (ft_read_death(ind_philo->shared_info) == 1 \
+	|| ft_read_end(ind_philo->shared_info) == 1)
 	{
 		pthread_mutex_unlock(&ind_philo->shared_info->to_write);
 		return (1);
@@ -90,7 +93,8 @@ int	sleeping(t_ind_philo *ind_philo)
 	ref = ft_gettimeofday();
 	while (ft_gettimeofday() < (ref + ind_philo->t_to_sleep))
 	{
-		if (ft_read_death(ind_philo->shared_info) == 1)
+		if (ft_read_death(ind_philo->shared_info) == 1 \
+		|| ft_read_end(ind_philo->shared_info) == 1)
 			return (1);
 		usleep(500);
 	}
@@ -103,7 +107,8 @@ int	thinking(t_ind_philo *ind_philo)
 
 	ref = 0;
 	pthread_mutex_lock(&ind_philo->shared_info->to_write);
-	if (ft_read_death(ind_philo->shared_info) == 1)
+	if (ft_read_death(ind_philo->shared_info) == 1 \
+	|| ft_read_end(ind_philo->shared_info) == 1)
 	{
 		pthread_mutex_unlock(&ind_philo->shared_info->to_write);
 		return (1);
@@ -114,7 +119,8 @@ int	thinking(t_ind_philo *ind_philo)
 	ref = ft_gettimeofday();
 	while (ft_gettimeofday() < (ref + ind_philo->t_to_think))
 	{
-		if (ft_read_death(ind_philo->shared_info) == 1)
+		if (ft_read_death(ind_philo->shared_info) == 1 \
+		|| ft_read_end(ind_philo->shared_info) == 1)
 			return (1);
 		usleep(500);
 	}

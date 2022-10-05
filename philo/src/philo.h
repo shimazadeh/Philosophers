@@ -28,6 +28,8 @@ typedef struct s_shared_info
 	pthread_mutex_t				to_write;
 	int							dead;
 	pthread_mutex_t				death;
+	int							end;
+	pthread_mutex_t				end_mutex;
 	int							full;
 	pthread_mutex_t				mutex_full;
 }				t_shared_info;
@@ -59,7 +61,7 @@ typedef struct s_main
 
 //routine
 int				take_first_fork(t_ind_philo	*ind_philo, int first);
-int				take_second_fork(t_ind_philo *ind_philo, int second);
+int				take_second_fork(t_ind_philo *ind_philo, int second, int first);
 int				eating(t_ind_philo *ind_philo, int first, int second);
 int				sleeping(t_ind_philo *ind_philo);
 int				thinking(t_ind_philo *ind_philo);
@@ -84,6 +86,7 @@ int				mock_up_routine(t_ind_philo *philo);
 
 //check for end/death
 int				ft_read_death(t_shared_info *shared);
+int				ft_read_end(t_shared_info *shared);
 int				check_if_program_ends(t_ind_philo philo);
 int				check_if_dead(t_ind_philo *philo, t_shared_info *shared);
 int				check_death(t_shared_info *shared, \

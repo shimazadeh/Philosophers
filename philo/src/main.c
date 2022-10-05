@@ -52,7 +52,7 @@ void	*execute(void *philo)
 	{
 		if (take_first_fork(ind_philo, first) == 1)
 			return (NULL);
-		if (take_second_fork(ind_philo, second) == 1)
+		if (take_second_fork(ind_philo, second, first) == 1)
 			return (NULL);
 		if (eating(ind_philo, first, second) == 1)
 			return (NULL);
@@ -75,9 +75,12 @@ int	ft_create_threads(t_ind_philo *all_philos, int total_philos)
 		if (pthread_create(&all_philos[i].thread_id, NULL, &execute, \
 		(void *)&all_philos[i]) != 0)
 		{
-			pthread_mutex_lock(&all_philos->shared_info->death);
-			all_philos->shared_info->dead = 1;
-			pthread_mutex_unlock(&all_philos->shared_info->death);
+			pthread_mutex_lock(&all_philos->shared_info->end_mutex);
+			pthread_mutex_lock(&all_philos->shared_info->to_write);
+			all_philos->shared_info->end = 1;
+			printf("error creating threads\n");
+			pthread_mutex_unlock(&all_philos->shared_info->to_write);
+			pthread_mutex_unlock(&all_philos->shared_info->end_mutex);
 			break ;
 		}
 		i++;
@@ -100,8 +103,7 @@ int	main(int ac, char **av)
 		mock_up_routine(philos->ind_philos);
 	else
 	{
-		if (ft_create_threads(philos->ind_philos, ft_atoi(av[1])) < 0)
-			return (-1);
+		ft_create_threads(philos->ind_philos, ft_atoi(av[1]));
 		check_if_dead(philos->ind_philos, philos->shared);
 		while (i < ft_atoi(av[1]))
 		{
