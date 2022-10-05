@@ -58,19 +58,19 @@ typedef struct s_main
 }				t_main;
 
 //routine
-int			take_first_fork(t_ind_philo	*ind_philo, int first);
-int			take_second_fork(t_ind_philo *ind_philo, int second);
-int			eating(t_ind_philo *ind_philo, int first, int second);
-int			sleeping(t_ind_philo *ind_philo);
-int			thinking(t_ind_philo *ind_philo);
-int			ft_usleep(t_ind_philo *philo, int first, int second);
-void		*execute(void *philo);
+int				take_first_fork(t_ind_philo	*ind_philo, int first);
+int				take_second_fork(t_ind_philo *ind_philo, int second);
+int				eating(t_ind_philo *ind_philo, int first, int second);
+int				sleeping(t_ind_philo *ind_philo);
+int				thinking(t_ind_philo *ind_philo);
+int				ft_usleep(t_ind_philo *philo, int first, int second);
+void			*execute(void *philo);
 
 //initializing
-int			ft_initialize_time(t_main *philos, int total_philos);
-int			initialize_indiv_info(t_ind_philo *philos, int i, char **av);
-int			initialize_shared_info(t_shared_info *shared, int size);
-int			ft_create_threads(t_ind_philo *all_philos, int total_philos);
+int				ft_initialize_time(t_main *philos, int total_philos);
+int				initialize_indiv_info(t_ind_philo *philos, int i, char **av);
+int				initialize_shared_info(t_shared_info *shared, int size);
+int				ft_create_threads(t_ind_philo *all_philos, int total_philos);
 
 //parsing
 t_main			*parsing(char **av);
@@ -80,19 +80,17 @@ long long int	ft_atoi(const char *str);
 
 //special case for 1 philo
 
-int			mock_up_routine(t_ind_philo *philo);
+int				mock_up_routine(t_ind_philo *philo);
 
 //check for end/death
-int			ft_read_death(t_shared_info *shared);
-int			check_if_program_ends(t_ind_philo philo);
-int			check_if_dead(t_ind_philo *philo, t_shared_info *shared);
-int			check_death(t_shared_info *shared, \
+int				ft_read_death(t_shared_info *shared);
+int				check_if_program_ends(t_ind_philo philo);
+int				check_if_dead(t_ind_philo *philo, t_shared_info *shared);
+int				check_death(t_shared_info *shared, \
 t_ind_philo *philo, int min_id, long long int min);
+long long		ft_gettimeofday(void);
 
-long long	ft_gettimeofday(void);
-
-int			ft_destroy_free(t_main	*all_philos);
-
-void		display_content(t_ind_philo philo);
+//destroy && free
+int				ft_destroy_free(t_main	*all_philos);
 
 #endif

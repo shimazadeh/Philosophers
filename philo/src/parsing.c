@@ -35,10 +35,10 @@ int	argument_check(char **av, int ac)
 	i = 1;
 	if (ac < 5 || ac > 6)
 		return (printf("invalid number of arguments\n"), -1);
-	if (av[1] == 0)
-		return (printf("invalid number of philosophers\n"), -1);
 	while (av[i])
 	{
+		if (i != 5 && !av[i][0])
+			return (printf("one or more arguments is NULL\n"), -1);
 		if (ft_is_num(av[i]) < 0)
 			return (printf("arguments cannot be negative\n"), -1);
 		num = ft_atoi(av[i]);
@@ -46,6 +46,8 @@ int	argument_check(char **av, int ac)
 			return (printf("argument exceed the limits\n"), -1);
 		i++;
 	}
+	if (ft_atoi(av[1]) == 0 || (av[5] && ft_atoi(av[5]) == 0))
+		return (-1);
 	return (0);
 }
 
